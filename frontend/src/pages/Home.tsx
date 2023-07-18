@@ -1,41 +1,69 @@
 import Header from "../components/Header";
 import pin from "../assets/pin.svg";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiX } from "react-icons/fi";
 import { useState } from "react";
 import TaskCard from "../components/TaskCard";
+import { useQuery } from "react-query";
+import { getTasks } from "../api/api";
+import { ITaskData } from "../types/types";
 
-const taskStatus = [
+const Progress = [
   {
-    title: "Todo",
-    number: 10,
-  },
-  {
-    title: "In Progress",
-    number: 5,
-  },
-  {
-    title: "Completed",
-    number: 2,
-  },
-];
-
-const taskData = [
-  {
-    id: "1",
-    title: "Water the plants",
-    description: "Water the plants in the balcony",
-    dueDate: "2021-10-10",
-    priority: "Low",
     progress: "Todo",
-    createdAt: "2021-10-10",
+    count: 0,
+  },
+  {
+    progress: "In Progress",
+    count: 0,
+  },
+  {
+    progress: "Completed",
+    count: 0,
   },
 ];
 
 const Home = () => {
   const [activeTaskStatus, setActiveTaskStatus] = useState("Todo");
+  const [showForm, setShowForm] = useState(false);
+
+  const {
+    data: taskData,
+    isLoading: taskDataLoading,
+    isError: taskDataError,
+  } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: getTasks,
+  });
+
+  if (taskDataLoading) return <p>Loading...</p>;
+  if (taskDataError) return <p>Error...</p>;
 
   const handleActiveTaskStatus = (status: string) => {
     setActiveTaskStatus(status);
+  };
+
+  const getProgressCount = (status: string) => {
+    return taskData?.filter((task) => task.progress === status).length;
+  };
+
+  const getFilteredTasks = taskData?.filter(
+    (task) => task.progress === activeTaskStatus
+  );
+
+  const addNewTaskHandler = () => {
+    setShowForm(true);
+  };
+
+  const handleInputChanges = (
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    console.log(event.target.value);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
   };
 
   return (
@@ -54,50 +82,133 @@ const Home = () => {
           </p>
         </div>
         <div className="flex flex-col w-full h-16 mt-4 px-6 ">
-          <div className="flex flex-row w-full h-full justify-between rounded-2xl bg-white py-3 shadow-sm">
+          <div className="flex flex-row w-full h-full justify-between rounded-2xl bg-white py-2 shadow-sm pr-8">
             <div className="flex flex-row gap-8 pl-6 h-full ">
-              {taskStatus.map((status) => (
+              {Progress?.map((task) => (
                 <div
-                  key={status.title}
+                  key={task.progress}
                   className={`flex flex-row items-center justify-center gap-2 h-full hover:cursor-pointer
                   ${
-                    activeTaskStatus === status.title
+                    activeTaskStatus === task.progress
                       ? "text-[#2F57FA] border-b-2 border-[#2F57FA]"
                       : "text-gray-400"
                   }
                   `}
-                  onClick={() => handleActiveTaskStatus(status.title)}
+                  onClick={() => handleActiveTaskStatus(task.progress)}
                 >
-                  <p className="text-xs font-semibold ">{status.title}</p>
+                  <p className="text-xs font-semibold ">{task.progress}</p>
 
                   <div
                     className={`w-5 h-5  rounded-md flex items-center justify-center
                     ${
-                      activeTaskStatus === status.title
+                      activeTaskStatus === task.progress
                         ? "bg-[#2F57FA]"
                         : "bg-gray-400"
                     }
                    `}
                   >
-                    <p className="text-white text-xs">{status.number}</p>
+                    <p className="text-white text-xs">
+                      {getProgressCount(task.progress)}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="flex flex-row rounded-xl items-center border px-3 border-gray-500 ">
+            <div
+              className="flex flex-row rounded-lg items-center border px-3 border-gray-400 hover:cursor-pointer"
+              onClick={addNewTaskHandler}
+            >
               <FiPlus className="text-gray-500 " />
-              <p className="text-xs font-semibold text-gray-500 px-2">
+              <p className="text-xs font-semibold text-gray-500 px-2 ">
                 Add New
               </p>
             </div>
           </div>
         </div>
-        <div className="flex flex-col w-full h-full mt-4 px-6 ">
-          <div className="flex flex-row flex-wrap w-full justify-start py-3">
-            {taskData.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
-          </div>
+        <div className="flex flex-row w-full h-full mt-4 px-6 ">
+          {showForm ? (
+            <div className="flex flex-col w-3/4 pr-6">
+              <div className="flex flex-row flex-wrap w-full justify-start py-3 gap-4">
+                {getFilteredTasks?.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col w-full pr-6">
+              <div className="flex flex-row flex-wrap w-full justify-start py-3 gap-4">
+                {getFilteredTasks?.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+              </div>
+            </div>
+          )}
+          {showForm && (
+            <div className="flex flex-col items-start mt-3 w-2/6 ">
+              <div className="bg-white rounded-md w-full p-4 shadow-sm ">
+                <div className="flex flex-row items-center justify-between w-full">
+                  <p className="text-sm font-semibold">Add New Task</p>
+                  <FiX
+                    className="text-gray-400 hover:cursor-pointer"
+                    onClick={() => setShowForm(false)}
+                  />
+                </div>
+                <form onSubmit={handleFormSubmit}>
+                  <div className="flex flex-col w-full mt-4 gap-1">
+                    <label className="text-sm text-gray-400 pb-1">Title</label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-400 rounded-sm px-2 py-1 text-xs"
+                      onChange={handleInputChanges}
+                    />
+                    <div className="flex flex-col w-full mt-2">
+                      <label className="text-sm text-gray-400 pb-1">
+                        Description
+                      </label>
+                      <textarea
+                        className="w-full border border-gray-400 rounded-sm px-2 py-1 text-xs"
+                        onChange={handleInputChanges}
+                      />
+                    </div>
+
+                    <div className="flex flex-row w-full mt-2">
+                      <div className="flex flex-col w-1/2 pr-2">
+                        <label className="text-sm text-gray-400 pb-1">
+                          Due Date
+                        </label>
+                        <input
+                          type="date"
+                          className="w-full border border-gray-400 rounded-sm px-2 py-1 text-xs"
+                          onChange={handleInputChanges}
+                        />
+                      </div>
+                      <div className="flex flex-col w-1/2 ">
+                        <label className="text-sm text-gray-400 pb-1">
+                          Select Priority
+                        </label>
+                        <select
+                          className="w-full bg-white border border-gray-400 rounded-sm px-2 py-1 text-xs hover:cursor-pointer "
+                          onChange={handleInputChanges}
+                        >
+                          <option>High</option>
+                          <option>Medium</option>
+                          <option>Low</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-row w-full mt-4">
+                    <button
+                      className="bg-[#2F57FA] rounded-md w-full py-2 text-white text-sm font-semibold"
+                      type="submit"
+                    >
+                      Add Task
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
