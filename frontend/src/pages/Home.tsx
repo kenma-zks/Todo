@@ -3,10 +3,11 @@ import pin from "../assets/pin.svg";
 import { FiPlus, FiX } from "react-icons/fi";
 import { useState } from "react";
 import TaskCard from "../components/TaskCard";
-import { useQuery } from "react-query";
-import { getTasks } from "../api/api";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { createTaskMutation, getTasks } from "../api/api";
 import { ITaskData } from "../types/types";
-
+import { useForm, SubmitHandler } from "react-hook-form";
+import TaskDetailsModal from "../components/TaskDetailsModal";
 const Progress = [
   {
     progress: "Todo",
@@ -25,6 +26,19 @@ const Progress = [
 const Home = () => {
   const [activeTaskStatus, setActiveTaskStatus] = useState("Todo");
   const [showForm, setShowForm] = useState(false);
+  const { handleSubmit, register, reset } = useForm<ITaskData>();
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<ITaskData | null>(null);
+
+  const queryClient = useQueryClient();
+
+  const refreshData = async () => {
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    }
+  };
 
   const {
     data: taskData,
@@ -34,6 +48,25 @@ const Home = () => {
     queryKey: ["tasks"],
     queryFn: getTasks,
   });
+
+  const mutation = useMutation<ITaskData, unknown, ITaskData>(
+    createTaskMutation,
+    {
+      onMutate: (variables) => {
+        return variables;
+      },
+      onSuccess: (data) => {
+        console.log("New task created:", data);
+        reset();
+        setShowForm(false);
+      },
+      onError: (error: unknown) => {
+        const errorMessage =
+          (error as Error)?.message || "Unknown error occurred";
+        console.error("Error creating task:", errorMessage);
+      },
+    }
+  );
 
   if (taskDataLoading) return <p>Loading...</p>;
   if (taskDataError) return <p>Error...</p>;
@@ -46,6 +79,12 @@ const Home = () => {
     return taskData?.filter((task) => task.progress === status).length;
   };
 
+  const openModal = (task: ITaskData) => {
+    task._id === selectedTask?._id
+      ? setModalIsOpen((prev) => !prev)
+      : (setSelectedTask(task), setModalIsOpen(true));
+  };
+
   const getFilteredTasks = taskData?.filter(
     (task) => task.progress === activeTaskStatus
   );
@@ -54,16 +93,17 @@ const Home = () => {
     setShowForm(true);
   };
 
-  const handleInputChanges = (
-    event: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    console.log(event.target.value);
-  };
+  const onSubmit: SubmitHandler<ITaskData> = async (data) => {
+    console.log(data);
+    try {
+      await mutation.mutateAsync(data);
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+      await refreshData();
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as Error)?.message || "Unknown error occurred";
+      console.error("Error creating task:", errorMessage);
+    }
   };
 
   return (
@@ -130,7 +170,7 @@ const Home = () => {
             <div className="flex flex-col w-3/4 pr-6">
               <div className="flex flex-row flex-wrap w-full justify-start py-3 gap-4">
                 {getFilteredTasks?.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard key={task.title} task={task} onClick={openModal} />
                 ))}
               </div>
             </div>
@@ -138,10 +178,16 @@ const Home = () => {
             <div className="flex flex-col w-full pr-6">
               <div className="flex flex-row flex-wrap w-full justify-start py-3 gap-4">
                 {getFilteredTasks?.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard key={task._id} task={task} onClick={openModal} />
                 ))}
               </div>
             </div>
+          )}
+          {modalIsOpen && selectedTask && (
+            <TaskDetailsModal
+              closeModal={() => setModalIsOpen(false)}
+              task={selectedTask}
+            />
           )}
           {showForm && (
             <div className="flex flex-col items-start mt-3 w-2/6 ">
@@ -153,13 +199,14 @@ const Home = () => {
                     onClick={() => setShowForm(false)}
                   />
                 </div>
-                <form onSubmit={handleFormSubmit}>
+
+                <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="flex flex-col w-full mt-4 gap-1">
                     <label className="text-sm text-gray-400 pb-1">Title</label>
                     <input
                       type="text"
                       className="w-full border border-gray-400 rounded-sm px-2 py-1 text-xs"
-                      onChange={handleInputChanges}
+                      {...register("title", { required: "Title is required" })}
                     />
                     <div className="flex flex-col w-full mt-2">
                       <label className="text-sm text-gray-400 pb-1">
@@ -167,7 +214,9 @@ const Home = () => {
                       </label>
                       <textarea
                         className="w-full border border-gray-400 rounded-sm px-2 py-1 text-xs"
-                        onChange={handleInputChanges}
+                        {...register("description", {
+                          required: "Description is required",
+                        })}
                       />
                     </div>
 
@@ -179,7 +228,9 @@ const Home = () => {
                         <input
                           type="date"
                           className="w-full border border-gray-400 rounded-sm px-2 py-1 text-xs"
-                          onChange={handleInputChanges}
+                          {...register("dueDate", {
+                            required: "Due Date is required",
+                          })}
                         />
                       </div>
                       <div className="flex flex-col w-1/2 ">
@@ -188,11 +239,14 @@ const Home = () => {
                         </label>
                         <select
                           className="w-full bg-white border border-gray-400 rounded-sm px-2 py-1 text-xs hover:cursor-pointer "
-                          onChange={handleInputChanges}
+                          defaultValue="Low"
+                          {...register("priority", {
+                            required: "Priority is required",
+                          })}
                         >
-                          <option>High</option>
-                          <option>Medium</option>
-                          <option>Low</option>
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
                         </select>
                       </div>
                     </div>

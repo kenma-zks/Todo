@@ -1,7 +1,12 @@
 import { ITaskData } from "../types/types";
 import { FiCalendar } from "react-icons/fi";
 
-const TaskCard = ({ task }: { task: ITaskData }) => {
+interface ITaskCardProps {
+  task: ITaskData;
+  onClick: (task: ITaskData) => void;
+}
+
+const TaskCard = ({ task, onClick }: ITaskCardProps) => {
   const formatDate = (date: string) => {
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -11,8 +16,15 @@ const TaskCard = ({ task }: { task: ITaskData }) => {
     return new Date(date).toLocaleDateString(undefined, options);
   };
 
+  const handleClick = () => {
+    onClick(task);
+  };
+
   return (
-    <div className="flex flex-col w-64 shadow-sm bg-white rounded-md hover:cursor-pointer hover:shadow-md">
+    <div
+      className="flex flex-col w-64 shadow-sm bg-white rounded-md hover:cursor-pointer hover:shadow-md"
+      onClick={handleClick}
+    >
       <div className="flex flex-row items-center justify-between px-4 py-2">
         <div
           className={`flex items-center justify-center w-20 h-8 rounded-full
