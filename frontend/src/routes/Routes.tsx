@@ -1,16 +1,16 @@
 import { createBrowserRouter } from "react-router-dom";
 import Home from "../pages/Home";
-import TaskDetails from "../components/TaskDetailsModal";
-// import Header from "../components/Header";
+import Header from "../components/Header";
+import Login from "../pages/Login";
 
 const router = createBrowserRouter([
-  // {
-  //   element: <Header />,
-  //   children: [{ path: "/", element: <Home /> }],
-  // },
   {
-    element: <Home />,
-    path: "/",
+    element: <Header />,
+    children: [{ path: "/", element: <Home /> }],
+  },
+  {
+    path: "/login",
+    element: <Login />,
   },
 ]);
 

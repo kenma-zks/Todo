@@ -7,3 +7,8 @@ export interface ITaskData {
   progress: string;
   createdAt: string;
 }
+
+export interface ILoginData {
+  email: string;
+  password: string;
+}
