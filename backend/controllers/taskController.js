@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import asyncHandler from "express-async-handler";
 
 const getTasks = asyncHandler(async (req, res) => {
-  const tasks = await Task.find();
+  const tasks = await Task.find({ user_id: req.user.id });
   res.status(200).json(tasks);
 });
 
@@ -13,6 +13,7 @@ const setTask = asyncHandler(async (req, res) => {
     res.status(400).json({ message: "Title is required" });
   }
   const task = await Task.create({
+    user_id: req.user.id,
     title,
     description,
     dueDate,

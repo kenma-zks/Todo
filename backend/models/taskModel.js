@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema({
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   title: {
     type: String,
     required: true,
@@ -11,14 +16,16 @@ const taskSchema = new mongoose.Schema({
   },
   dueDate: {
     type: Date,
+    default: Date.now(),
   },
   priority: {
     type: String,
-    enum: ["low", "medium", "high"],
+    enum: ["Low", "Medium", "High"],
   },
-  completed: {
-    type: Boolean,
-    default: false,
+  progress: {
+    type: String,
+    enum: ["Todo", "In Progress", "Completed"],
+    default: "Todo",
   },
   createdAt: {
     type: Date,
