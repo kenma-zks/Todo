@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import pin from "../assets/pin.svg";
 import { FiPlus, FiX } from "react-icons/fi";
 import { useState } from "react";
@@ -34,8 +31,6 @@ const Home = () => {
   const [selectedTask, setSelectedTask] = useState<ITaskData | null>(null);
   const queryClient = useQueryClient();
 
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
   const searchTerm = useAppSelector((state) => state.search);
 
   const refreshData = async () => {

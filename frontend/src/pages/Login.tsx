@@ -1,6 +1,10 @@
-import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { ILoginData } from "../types/types";
+import { useAppDispatch } from "../store/hooks";
+import { authActions } from "../store/authSlice";
+import { Link, useNavigate } from "react-router-dom";
+import { loginMutation } from "../api/api";
+import { useMutation } from "react-query";
 
 const Login = () => {
   const {
@@ -9,8 +13,27 @@ const Login = () => {
     // formState: { errors },
   } = useForm<ILoginData>();
 
-  const onSubmit: SubmitHandler<ILoginData> = (data) => {
-    console.log(data);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { mutateAsync } = useMutation({
+    mutationFn: loginMutation,
+    onSuccess: (data) => {
+      const accessToken: string = data.accessToken;
+      dispatch(authActions.login({ accessToken }));
+      localStorage.setItem("authToken", accessToken);
+      navigate("/");
+    },
+    onError: () => {
+      console.log("error");
+    },
+  });
+
+  const onSubmit: SubmitHandler<ILoginData> = async (data) => {
+    try {
+      await mutateAsync(data);
+    } catch {
+      console.log("error");
+    }
   };
 
   return (
@@ -56,7 +79,9 @@ const Login = () => {
 
           <p className="text-xs font-semibold text-gray-400">
             Don't have an account?
-            <span className="text-blue-400 cursor-pointer px-1 ">Sign Up</span>
+            <span className="text-blue-400 cursor-pointer px-1">
+              <Link to="/register">Sign Up</Link>
+            </span>
           </p>
         </div>
       </div>

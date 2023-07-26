@@ -12,7 +12,6 @@ interface ITaskDetailsModalProps {
 const TaskDetailsModal = ({ task, closeModal }: ITaskDetailsModalProps) => {
   const queryClient = useQueryClient();
 
-  console.log(task);
   const {
     handleSubmit,
     register,

@@ -1,19 +1,26 @@
 import logo from "../assets/logo.svg";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import Searchbar from "./Searchbar";
 import avatar from "../assets/avatar.svg";
 import { setSearchQuery } from "../store/searchSlice";
 import { useAppDispatch } from "../store/hooks";
 import { useState, useRef, useEffect } from "react";
+import { authActions } from "../store/authSlice";
+import { useQuery } from "react-query";
+import { getUser } from "../api/api";
 
 const Header = () => {
   const [shownDropdown, setShownDropdown] = useState(false);
+  const navigate = useNavigate();
 
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
   const dispatch = useAppDispatch();
 
+  const { data: user } = useQuery({
+    queryKey: ["user"],
+    queryFn: getUser,
+  });
+
   const handleSearch = (searchTerm: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     dispatch(setSearchQuery(searchTerm));
   };
 
@@ -22,7 +29,8 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    console.log("logout");
+    dispatch(authActions.logout());
+    navigate("/login");
   };
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,7 +65,7 @@ const Header = () => {
           </div>
           <div className="border-r border-gray-400 h-8 " />
           <div className="flex items-center gap-3 pr-8" ref={dropdownRef}>
-            <p className="font-semibold">Dog </p>
+            <p className="font-semibold">{user?.username}</p>
             <img
               src={avatar}
               alt="avatar"
