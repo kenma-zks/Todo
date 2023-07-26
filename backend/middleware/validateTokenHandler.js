@@ -7,8 +7,9 @@ const validateToken = async (req, res, next) => {
     token = authHeader.split(" ")[1];
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) {
+        console.log(err);
         res.status(401);
-        throw new Error("Not authorized, token failed");
+        next(new Error("Not authorized, token failed"));
       }
       req.user = decoded.user;
       next();
@@ -16,7 +17,7 @@ const validateToken = async (req, res, next) => {
   }
   if (!token) {
     res.status(401);
-    throw new Error("Not authorized, no token");
+    next(new Error("Not authorized, no token"));
   }
 };
 

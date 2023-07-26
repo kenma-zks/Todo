@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import asyncHandler from "express-async-handler";
 
 const getTasks = asyncHandler(async (req, res) => {
+  console.log(req.user);
   const tasks = await Task.find({ user_id: req.user.id });
   res.status(200).json(tasks);
 });
