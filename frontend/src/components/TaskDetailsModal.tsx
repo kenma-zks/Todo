@@ -4,6 +4,8 @@ import type { SubmitHandler } from "react-hook-form";
 import { useEffect } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { deleteTaskMutation, updateTaskMutation } from "../api/api";
+import { toast, ToastContainer } from "react-toastify";
+
 interface ITaskDetailsModalProps {
   task: ITaskData;
   closeModal: () => void;
@@ -34,6 +36,11 @@ const TaskDetailsModal = ({ task, closeModal }: ITaskDetailsModalProps) => {
   >((newTask) => updateTaskMutation(task._id, newTask), {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task updated successfully", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000,
+        hideProgressBar: true,
+      });
     },
   });
 
@@ -42,6 +49,11 @@ const TaskDetailsModal = ({ task, closeModal }: ITaskDetailsModalProps) => {
     {
       onSuccess: async () => {
         await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        toast.success("Task deleted successfully", {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
       },
     }
   );
@@ -170,6 +182,7 @@ const TaskDetailsModal = ({ task, closeModal }: ITaskDetailsModalProps) => {
           </button>
         </div>
       </form>
+      <ToastContainer />
     </div>
   );
 };

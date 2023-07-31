@@ -5,6 +5,8 @@ import { authActions } from "../store/authSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { loginMutation } from "../api/api";
 import { useMutation } from "react-query";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
   const {
@@ -22,9 +24,18 @@ const Login = () => {
       dispatch(authActions.login({ accessToken }));
       localStorage.setItem("authToken", accessToken);
       navigate("/");
+      toast.success("Login successful", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000,
+        hideProgressBar: true,
+      });
     },
     onError: () => {
-      console.log("error");
+      toast.error("Login failed", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000,
+        hideProgressBar: true,
+      });
     },
   });
 
@@ -85,6 +96,7 @@ const Login = () => {
           </p>
         </div>
       </div>
+      <ToastContainer />
     </form>
   );
 };

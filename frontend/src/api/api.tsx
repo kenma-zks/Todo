@@ -26,8 +26,14 @@ export const getUser = async () => {
 export const createTaskMutation = async (task: ITaskData) => {
   const response: AxiosResponse<ITaskData> = await instance.post(
     "/tasks/",
-    task
+    task,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
+    }
   );
+
   return response.data;
 };
 
@@ -37,20 +43,31 @@ export const updateTaskMutation = async (
 ): Promise<ITaskData> => {
   const response: AxiosResponse<ITaskData> = await instance.put(
     `/tasks/${id}`,
-    task
+    task,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
+    }
   );
   return response.data;
 };
 
 export const deleteTaskMutation = async (id: string) => {
   const response: AxiosResponse<ITaskData> = await instance.delete(
-    `/tasks/${id}`
+    `/tasks/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
+    }
   );
   return response.data;
 };
 
 export const loginMutation = async (loginData: ILoginData) => {
   const response = await instance.post("/users/login", loginData);
+
   return response.data;
 };
 

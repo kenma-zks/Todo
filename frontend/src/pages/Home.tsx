@@ -8,6 +8,8 @@ import { ITaskData } from "../types/types";
 import { useForm, SubmitHandler } from "react-hook-form";
 import TaskDetailsModal from "../components/TaskDetailsModal";
 import { useAppSelector } from "../store/hooks";
+import { toast, ToastContainer } from "react-toastify";
+
 const Progress = [
   {
     progress: "Todo",
@@ -60,11 +62,21 @@ const Home = () => {
         console.log("New task created:", data);
         reset();
         setShowForm(false);
+        toast.success("Task created successfully", {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
       },
       onError: (error: unknown) => {
         const errorMessage =
           (error as Error)?.message || "Unknown error occurred";
         console.error("Error creating task:", errorMessage);
+        toast.error("Error creating task", {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
       },
     }
   );
@@ -97,7 +109,6 @@ const Home = () => {
   };
 
   const onSubmit: SubmitHandler<ITaskData> = async (data) => {
-    console.log(data);
     try {
       await mutation.mutateAsync(data);
 
@@ -269,6 +280,7 @@ const Home = () => {
           </div>
         )}
       </div>
+      <ToastContainer />
     </div>
   );
 };
