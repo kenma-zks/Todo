@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import { ILoginData, IRegisterData, ITaskData } from "../types/types";
 
 const instance = axios.create({
-  baseURL: "http://localhost:5001/api",
+  baseURL: "http://localhost:5001/api || https://todo-hclk.onrender.com/api",
 });
 
 export const getTasks = async (): Promise<ITaskData[]> => {
